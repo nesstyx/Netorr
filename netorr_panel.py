@@ -3,6 +3,7 @@ import urllib.request
 import socket
 import webbrowser
 import subprocess
+import platform
 import time
 
 def get_my_ip():
@@ -127,6 +128,22 @@ def checkWARP():
     return "выключен"
 
 
+def get_response_time():
+    start = time.perf_counter()
+
+    try:
+        url = "http://127.0.0.1:" + PORT + "/echo"
+
+        with urllib.request.urlopen(url, timeout=2) as response:
+            response.read()
+
+        elapsed = (time.perf_counter() - start) * 1000
+        return f"{elapsed:.0f} мс"
+
+    except Exception:
+        return "нет соединения"
+
+
 def copy_address():
     window.clipboard_clear()
     window.clipboard_append(f"http://{ip}:{PORT}")
@@ -155,6 +172,67 @@ def show_status():
     label1.config(text=line1)
     label2.config(text=line2)
     label3.config(text=line3)
+    
+    response_label.config(
+    text="Время ответа: " + get_response_time()
+    )  
+    
+
+def show_about():
+    about = tk.Toplevel(window)
+    about.title("О программе Netorr")
+    about.geometry("420x330")
+    about.resizable(False, False)
+    about.configure(bg="#edf1f7")
+
+    tk.Label(
+        about,
+        text="Netorr",
+        font=("Segoe UI", 25, "bold"),
+        bg="#edf1f7",
+        fg="#1769c2"
+    ).pack(pady=(22, 0))
+
+    tk.Label(
+        about,
+        text="TorrServer Assistant",
+        font=("Segoe UI", 12),
+        bg="#edf1f7",
+        fg="#65758b"
+    ).pack(pady=(0, 18))
+
+    info = [
+        "Версия Netorr: 1.0.0",
+        f"Версия Python: {platform.python_version()}",
+        f"Операционная система: {platform.system()}",
+        f"Порт TorrServer: {PORT}",
+        "",
+        "Утилита для проверки и управления",
+        "подключением к TorrServer."
+    ]
+
+    for line in info:
+        tk.Label(
+            about,
+            text=line,
+            font=("Segoe UI", 10),
+            bg="#edf1f7",
+            fg="#172b46"
+        ).pack(pady=2)
+
+    tk.Button(
+        about,
+        text="GitHub проекта",
+        command=open_netorr,
+        bg="#1769c2",
+        fg="white",
+        activebackground="#0f56a8",
+        activeforeground="white",
+        relief="flat",
+        padx=16,
+        pady=7
+    ).pack(pady=15)
+
 
 window = tk.Tk()
 window.title("Netorr")
@@ -201,10 +279,9 @@ links_menu.add_command(label="GitHub Netorr", command=open_netorr)
 links_menu.add_command(label="Lampa", command=open_lampa)
 menu_bar.add_cascade(label="Ссылки", menu=links_menu)
 
-menu_bar.add_cascade(
-    label="Справка",
-    menu=tk.Menu(menu_bar, tearoff=0)
-)
+help_menu = tk.Menu(menu_bar, tearoff=0)
+help_menu.add_command(label="О программе", command=show_about)
+menu_bar.add_cascade(label="Справка", menu=help_menu)
 
 # Header
 header = tk.Frame(window, bg="#142c4d", padx=22, pady=16)
@@ -324,6 +401,16 @@ label3 = tk.Label(
     anchor="w"
 )
 label3.pack(fill="x", pady=3)
+
+response_label = tk.Label(
+    status_card,
+    text="Время ответа: измерение...",
+    font=("Segoe UI", 10),
+    bg=PANEL,
+    fg=MUTED,
+    anchor="w"
+)
+response_label.pack(fill="x", pady=3)
 
 message = tk.Label(
     status_card,
