@@ -3,6 +3,7 @@ import urllib.request
 import socket
 
 PORT = "8090"  # порт, на котором запущен TorrServer
+WARP_URL = "https://www.cloudflare.com/cdn-cgi/trace"
 
 
 def get_status():
@@ -14,7 +15,8 @@ def get_status():
         
         line1 =  "TorrServer: работает, версия " + version + ", порт " + PORT
         line2 = f"Адрес для NUM/Lampa: http://{ip}:{PORT}"
-        return f"{line1}\n{line2}"
+        line3 = f"WARP: {checkWARP()}"
+        return f"{line1}\n{line2}\n{line3}"
     except Exception:
         return "TorrServer: не отвечает (он запущен?)"
     
@@ -27,6 +29,16 @@ def get_my_ip():
         return "не удалось узнать"
     finally:
         sock.close()
+        
+def checkWARP():
+    try:
+        text = urllib.request.urlopen(WARP_URL, timeout=3).read().decode("utf-8")
+    except Exception:
+        return "не удалось проверить"
+ 
+    if "warp=on" in text or "warp=plus" in text:
+        return "включён"
+    return "ВЫКЛЮЧЕН"
 
 
 window = tk.Tk()
